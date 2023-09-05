@@ -1,30 +1,54 @@
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Chain {
 
-    public static ArrayList<Block> blockchain = new ArrayList<>();
-    public static int difficulty = 5;
-    public static void main(String[] args) {
+    public static Scanner keyboard;
+    private ArrayList<Block> blockchain;
+    private int difficulty;
 
-        blockchain.add(new Block("first block 1", "0"));
-        System.out.println("Trying to Mine block 1...");
-        blockchain.get(0).mineBlock(difficulty);
-//
-//        blockchain.add(new Block("second block 2",
-//                blockchain.get(blockchain.size()-1).getHash()));
-//        blockchain.add(new Block("third block 3",
-//                blockchain.get(blockchain.size()-1).getHash()));
-
-        System.out.println("\nBlockchain is Valid: " + isChainValid());
-
-        String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
-        System.out.println("\nThe block chain: ");
-        System.out.println(blockchainJson);
+    public Chain(Scanner scanner,int difficulty) {
+        this(new ArrayList<>(), difficulty, scanner);
     }
 
-    public static boolean isChainValid() {
+    public Chain(ArrayList<Block> blockchain, int difficulty, Scanner scanner) {
+        this.blockchain = blockchain;
+        this.difficulty = difficulty;
+        keyboard = scanner;
+    }
+
+    public void Start() {
+
+        int index = 1;
+        String previousHashValue = "0"; // 第一个block初始为0
+
+        do {
+            System.out.printf("Please enter block %d Date: \n", index);
+
+            blockchain.add(new Block(keyboard.nextLine(), previousHashValue));
+            System.out.printf("Trying to Mine block %d\n", index++);
+
+            blockchain.get(index - 2).mineBlock(difficulty); // 挖矿
+            // 获取前一个block的hash值
+            previousHashValue = blockchain.get(index - 2).getHash();
+
+        } while (isContinue());
+
+        System.out.println("\nBlockchain is Valid: " + isChainValid());
+        System.out.println("\nThe block chain: ");
+        String blockchainJson = new GsonBuilder().setPrettyPrinting().create().toJson(blockchain);
+        System.out.println(blockchainJson);
+
+    }
+
+    /**
+     * Check chainValid
+     * 检查chain的合法性
+     * @return
+     */
+    public boolean isChainValid() {
 
         Block currentBlock;
         Block previousBlock;
@@ -45,5 +69,16 @@ public class Chain {
         }
 
         return true;
+    }
+
+    public boolean isContinue() {
+
+        String flag;
+        do {
+            System.out.println("If you need to continue, please enter [Yes], otherwise enter [No].");
+            flag = keyboard.nextLine();
+        } while (!flag.equalsIgnoreCase("yes") && !flag.equalsIgnoreCase("no"));
+
+       return flag.equalsIgnoreCase("yes");
     }
 }
